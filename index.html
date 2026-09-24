@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>حساب غذا | نیما داینز</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF0EC; --ink:#1C2A2E; --muted:#5B686B; --line:#D3D8D2;
+  --paper:#FFFFFF; --saffron:#E0A021; --saffron-d:#B97F0E;
+  --good:#2F7A55; --good-bg:#E3F2EA; --warn:#9A6412; --warn-bg:#FBF0DA;
+  --bad:#B23A2B; --bad-bg:#F9E3DF;
+  --font:"Vazirmatn", Tahoma, "Segoe UI", Arial, sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:17px;line-height:1.8;-webkit-text-size-adjust:100%}
+.wrap{max-width:560px;margin:0 auto;padding:0 16px 120px}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--saffron);outline-offset:2px}
+
+/* top */
+.top{display:flex;justify-content:space-between;align-items:center;padding:14px 0 6px}
+.brand{font-weight:900;font-size:15px;letter-spacing:0}
+.brand small{font-weight:400;color:var(--muted);margin-inline-start:6px}
+.linkbtn{background:none;border:0;color:var(--muted);font-size:14px;padding:6px;text-decoration:underline}
+
+/* steps */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0 18px;position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);padding:8px 0;z-index:5}
+.step{border:0;background:var(--paper);border-radius:12px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;line-height:1.4;border:2px solid transparent}
+.step b{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--line);font-size:15px}
+.step span{font-size:13px;margin-top:4px}
+.step[aria-current="step"]{border-color:var(--ink)}
+.step[aria-current="step"] b{background:var(--ink);color:#fff}
+
+h1{font-size:28px;line-height:1.45;font-weight:900;margin:8px 0 10px}
+h2{font-size:22px;font-weight:900;margin:4px 0 6px;line-height:1.5}
+.lead{color:var(--muted);margin:0 0 18px}
+.hint{font-size:14px;color:var(--muted);margin:4px 0 0;line-height:1.7}
+
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:54px;border-radius:14px;border:0;font-weight:800;font-size:17px;padding:10px 16px;text-decoration:none}
+.btn-main{background:var(--saffron);color:var(--ink)}
+.btn-main:active{background:var(--saffron-d)}
+.btn-ghost{background:transparent;border:2px solid var(--ink)}
+.btn-soft{background:var(--paper);border:2px dashed var(--line);color:var(--ink)}
+.btn-danger{background:transparent;color:var(--bad);border:0;font-weight:600;min-height:44px}
+.row-btns{display:grid;gap:10px;margin-top:18px}
+
+/* intro */
+.intro-ticket{background:var(--paper);border-radius:4px;padding:22px 18px;margin:10px 0 18px;position:relative}
+.intro-ticket ol{margin:10px 0 0;padding-inline-start:22px}
+.intro-ticket li{margin-bottom:6px}
+
+/* dish list */
+.dish{display:flex;align-items:center;gap:12px;width:100%;text-align:right;background:var(--paper);border:0;border-radius:14px;padding:14px;margin-bottom:10px;min-height:64px}
+.dish .dot{width:12px;height:12px;border-radius:50%;flex:none;background:var(--line)}
+.dish .dot.good{background:var(--good)} .dish .dot.warn{background:var(--saffron)} .dish .dot.bad{background:var(--bad)}
+.dish .nm{flex:1;font-weight:800}
+.dish .meta{font-size:13px;color:var(--muted);display:block;font-weight:400}
+.dish .go{color:var(--muted);font-size:20px}
+.empty{background:var(--paper);border-radius:14px;padding:22px;text-align:center;color:var(--muted)}
+
+/* form */
+.card{background:var(--paper);border-radius:16px;padding:16px;margin-bottom:14px}
+.field{margin-bottom:14px}
+.field label{display:block;font-weight:800;margin-bottom:4px;line-height:1.6}
+.field input,.field select{width:100%;min-height:50px;border:2px solid var(--line);border-radius:12px;padding:8px 12px;background:#fff;font-size:18px}
+.field input:focus,.field select:focus{border-color:var(--ink);outline:none}
+.pair{display:grid;grid-template-columns:1.3fr 1fr;gap:8px}
+.money{font-size:13px;color:var(--good);margin-top:4px;min-height:1em;font-weight:600}
+.ing{border:2px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px;background:#FBFCFA}
+.ing-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.ing-head strong{font-size:15px;color:var(--muted)}
+.ing-cost{background:var(--bg);border-radius:10px;padding:8px 12px;font-size:15px;margin-top:4px}
+.ing-cost b{font-size:17px}
+.shared{font-size:13px;color:var(--warn);background:var(--warn-bg);border-radius:8px;padding:4px 10px;margin:-4px 0 10px}
+.x{background:none;border:0;color:var(--bad);font-size:14px;padding:6px 8px}
+.total-bar{position:sticky;bottom:calc(10px + env(safe-area-inset-bottom,0px));background:var(--ink);color:#fff;border-radius:16px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:6px;z-index:4}
+.total-bar small{display:block;opacity:.75;font-size:13px}
+.total-bar b{font-size:22px;font-weight:900}
+.total-bar .btn{width:auto;min-height:46px;padding:6px 18px}
+
+.back{display:inline-flex;align-items:center;gap:6px;background:none;border:0;padding:8px 0;color:var(--muted);font-weight:600}
+
+/* sales */
+.sale-row{display:grid;grid-template-columns:1fr 130px;gap:10px;align-items:center;background:var(--paper);border-radius:14px;padding:12px 14px;margin-bottom:10px}
+.sale-row input{min-height:48px;border:2px solid var(--line);border-radius:12px;padding:6px 10px;text-align:center;font-size:18px;width:100%}
+
+/* report: receipt */
+.settings{background:var(--paper);border-radius:16px;padding:14px 16px;margin-bottom:18px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.chip{border:2px solid var(--line);background:#fff;border-radius:999px;padding:6px 14px;font-weight:700;min-height:44px}
+.chip[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.toggle{display:flex;align-items:center;gap:10px;margin-top:12px;font-weight:700}
+.toggle input{width:22px;height:22px}
+
+.receipt{background:var(--paper);padding:26px 20px 30px;margin:0 2px 26px;position:relative;
+  --z:10px;
+  -webkit-mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/calc(2*var(--z)) 100%,
+               conic-gradient(from 135deg at top,#0000,#000 1deg 89deg,#0000 90deg) 50%/calc(2*var(--z)) 100%;
+  -webkit-mask-composite:source-in; mask-composite:intersect;
+  mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/calc(2*var(--z)) 100%,
+       conic-gradient(from 135deg at top,#0000,#000 1deg 89deg,#0000 90deg) 50%/calc(2*var(--z)) 100%;
+  mask-composite:intersect;
+  filter:drop-shadow(0 1px 0 var(--line));
+}
+.r-head{text-align:center;border-bottom:2px dashed var(--line);padding-bottom:12px;margin-bottom:6px}
+.r-head .t{font-weight:900;font-size:20px}
+.r-head .s{font-size:13px;color:var(--muted)}
+.r-dish{padding:16px 0;border-bottom:2px dashed var(--line)}
+.r-dish:last-child{border-bottom:0}
+.r-name{font-weight:900;font-size:20px;margin-bottom:6px}
+.r-line{display:flex;align-items:baseline;gap:6px;font-size:16px}
+.r-line .lbl{white-space:nowrap}
+.r-line .dots{flex:1;border-bottom:2px dotted var(--line);transform:translateY(-5px);min-width:12px}
+.r-line .val{font-weight:800;white-space:nowrap}
+.bar{height:12px;background:var(--bg);border-radius:6px;overflow:hidden;margin:10px 0 4px}
+.bar i{display:block;height:100%;border-radius:6px}
+.hundred{font-size:15px}
+.verdict{border-radius:12px;padding:10px 12px;margin-top:10px;font-size:15px;line-height:1.75}
+.verdict.good{background:var(--good-bg);color:#1E5A3D}
+.verdict.warn{background:var(--warn-bg);color:#6E4608}
+.verdict.bad{background:var(--bad-bg);color:#8A2A1E}
+.verdict b{display:block;font-size:16px}
+.cat{margin-top:10px;border:2px solid var(--ink);border-radius:12px;padding:10px 12px;font-size:15px}
+.cat b{font-size:16px}
+.ask{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;background:var(--ink);color:#fff;border-radius:12px;padding:10px 12px;font-size:14px;line-height:1.6}
+.ask a{background:var(--saffron);color:var(--ink);text-decoration:none;font-weight:800;border-radius:10px;padding:8px 12px;white-space:nowrap}
+.summary{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+.summary div{background:var(--paper);border-radius:14px;padding:12px}
+.summary small{display:block;color:var(--muted);font-size:13px}
+.summary b{font-size:20px;font-weight:900}
+.note{background:var(--paper);border-inline-start:4px solid var(--saffron);border-radius:8px;padding:10px 14px;font-size:15px;margin-bottom:16px}
+
+/* help */
+.helpbox{margin-top:30px;background:var(--paper);border-radius:16px;padding:16px;display:flex;gap:14px;align-items:center}
+.helpbox .face{flex:none;width:52px;height:52px;border-radius:50%;background:var(--ink);color:var(--saffron);display:grid;place-items:center;font-weight:900;font-size:22px}
+.helpbox p{margin:0;font-size:15px;line-height:1.7}
+.helpbox button{margin-top:6px;background:none;border:0;padding:0;color:var(--ink);font-weight:800;text-decoration:underline;font-size:15px}
+.fab{position:fixed;left:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--ink);color:#fff;border:0;border-radius:999px;padding:10px 18px;font-weight:800;font-size:15px;min-height:48px;z-index:10;box-shadow:0 4px 14px rgba(28,42,46,.25)}
+.sheet-bg{position:fixed;inset:0;background:rgba(28,42,46,.45);display:none;z-index:20}
+.sheet{position:fixed;left:0;right:0;bottom:0;background:var(--paper);border-radius:22px 22px 0 0;padding:20px 18px calc(22px + env(safe-area-inset-bottom,0px));max-width:560px;margin:0 auto;transform:translateY(105%);transition:transform .25s ease;z-index:21}
+.sheet.open{transform:none}
+.sheet h2{margin-bottom:2px}
+.contact{display:flex;align-items:center;gap:12px;background:var(--bg);border-radius:14px;padding:12px 14px;margin-top:10px;text-decoration:none;color:var(--ink);min-height:58px}
+.contact .ic{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:var(--ink);color:#fff;font-size:17px;flex:none}
+.contact b{display:block}
+.contact span{font-size:14px;color:var(--muted);direction:ltr;unicode-bidi:isolate}
+.contact.tg .ic{background:#2A9ED8}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:8px 18px;border-radius:999px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:30}
+.toast.show{opacity:1}
+
+.tg .print-btn{display:none}
+@media (prefers-reduced-motion:reduce){.sheet,.toast{transition:none}}
+@media print{
+  body{background:#fff}
+  .steps,.fab,.helpbox,.top .linkbtn,.settings,.no-print,.ask{display:none!important}
+  .receipt{mask:none;-webkit-mask:none;filter:none;border:1px dashed #999}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">نیما داینز<small>حساب غذا</small></div>
+    <button class="linkbtn" id="demoBtn" type="button">نمونه رو ببین</button>
+  </header>
+  <nav class="steps" id="steps" aria-label="مراحل">
+    <button class="step" data-go="dishes" type="button"><b>۱</b><span>غذاها و موادش</span></button>
+    <button class="step" data-go="sales" type="button"><b>۲</b><span>فروش ماه</span></button>
+    <button class="step" data-go="report" type="button"><b>۳</b><span>کارنامه منو</span></button>
+  </nav>
+  <main id="app"></main>
+  <section class="helpbox">
+    <div class="face" aria-hidden="true">ن</div>
+    <div>
+      <p><b>جایی گیر کردی یا عددها برات عجیبه؟</b><br>بهم پیام بده. کمکت می‌کنم منوت رو درست ببینی.</p>
+      <button type="button" data-help>راه‌های تماس با نیما</button>
+    </div>
+  </section>
+</div>
+
+<button class="fab" type="button" data-help>سؤال داری؟</button>
+<div class="sheet-bg" id="sheetBg"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <h2 id="sheetTitle">با نیما در تماس باش</h2>
+  <p class="hint" style="margin-bottom:6px">برای راهنمایی درباره‌ی همین فایل یا مشاوره‌ی منو و قیمت‌گذاری رستورانت.</p>
+  <div id="contacts"></div>
+  <button class="btn btn-ghost" type="button" id="closeSheet" style="margin-top:14px">بستن</button>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/* ===== اطلاعات تماس: فقط همین‌جا رو عوض کن ===== */
+const CONTACT = {
+  phone: "09123107537",
+  telegram: "https://t.me/nimasdiner",
+  instagram: "https://instagram.com/nimasdiner",
+  email: "nimania@gmail.com"
+};
+
+/* ===== تلگرام: فقط وقتی صفحه داخل تلگرام باز شده فعال می‌شه ===== */
+const IN_TG = /tgWebApp/.test(location.hash);
+let tg = null;
+if (IN_TG) {
+  const sc = document.createElement("script");
+  sc.src = "https://telegram.org/js/telegram-web-app.js";
+  sc.onload = () => {
+    tg = window.Telegram && window.Telegram.WebApp; if (!tg) return;
+    tg.ready(); tg.expand();
+    try { tg.setHeaderColor("#EEF0EC"); tg.setBackgroundColor("#EEF0EC"); } catch(e){}
+    tg.BackButton.onClick(() => { if (view==="edit"||view==="sales") go("dishes"); else if (view==="report") go("sales"); });
+    document.body.classList.add("tg");
+    render();
+  };
+  document.head.appendChild(sc);
+}
+function askConfirm(m){
+  return new Promise(r=>{
+    if (tg && tg.showConfirm) { try { tg.showConfirm(m, ok=>r(!!ok)); return; } catch(e){} }
+    r(window.confirm(m));
+  });
+}
+document.addEventListener("click", e=>{
+  const a = e.target.closest && e.target.closest("a[href]"); if (!a || !tg) return;
+  const h = a.getAttribute("href");
+  if (h.startsWith("https://t.me/")) { e.preventDefault(); tg.openTelegramLink(h); }
+  else if (h.startsWith("http")) { e.preventDefault(); tg.openLink(h); }
+});
+
+/* ===== ابزار ===== */
+const fa = n => (n==null||isNaN(n)) ? "—" : Math.round(n).toLocaleString("fa-IR");
+const faPct = n => (n==null||isNaN(n)) ? "—" : Math.round(n*100).toLocaleString("fa-IR") + "٪";
+const faDigits = s => String(s).replace(/\d/g, d => "۰۱۲۳۴۵۶۷۸۹"[d]);
+function num(v){
+  if (v==null) return null;
+  let s = String(v).replace(/[۰-۹]/g,d=>"۰۱۲۳۴۵۶۷۸۹".indexOf(d)).replace(/[٠-٩]/g,d=>"٠١٢٣٤٥٦٧٨٩".indexOf(d));
+  s = s.replace(/[٫]/g,".").replace(/[,٬،\s]/g,"");
+  if (s==="") return null;
+  const n = parseFloat(s); return isNaN(n) ? null : n;
+}
+const esc = s => String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const uid = () => Math.random().toString(36).slice(2,9);
+const $ = s => document.querySelector(s);
+
+const UNITS = {
+  "کیلوگرم":{base:"گرم",m:1000}, "گرم":{base:"گرم",m:1},
+  "لیتر":{base:"میلی‌لیتر",m:1000}, "میلی‌لیتر":{base:"میلی‌لیتر",m:1},
+  "عدد":{base:"عدد",m:1}
+};
+const WASTE = [[0,"هیچی، همه‌اش مصرف می‌شه"],[0.1,"کم (حدود ۱۰٪)"],[0.25,"متوسط (حدود ۲۵٪)"],[0.4,"زیاد (حدود ۴۰٪)"]];
+
+/* ===== داده ===== */
+const KEY = "nimadines-hesab-v1";
+let S = load() || blank();
+function blank(){ return {ings:{}, dishes:[], target:0.35, online:false, commission:0.2, seen:false}; }
+function load(){ try{ const r = localStorage.getItem(KEY); return r ? JSON.parse(r) : null; }catch(e){ return null; } }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+
+function demo(){
+  const I = (name,q,u,p,w)=>{const id=uid(); S.ings[id]={name,q,u,p,w}; return id;};
+  S = blank(); S.seen = true;
+  const meat=I("گوشت چرخ‌کرده",1,"کیلوگرم",1100000,0), bun=I("نان همبرگر",10,"عدد",150000,0),
+        chz=I("پنیر ورقه‌ای",1,"کیلوگرم",700000,0), tom=I("گوجه‌فرنگی",1,"کیلوگرم",60000,0.1),
+        let_=I("کاهو",1,"کیلوگرم",50000,0.25), sauce=I("سس مخصوص",1,"کیلوگرم",200000,0),
+        chk=I("فیله مرغ",1,"کیلوگرم",400000,0.1), bag=I("نان باگت",10,"عدد",120000,0),
+        pot=I("سیب‌زمینی",1,"کیلوگرم",40000,0.25), oil=I("روغن سرخ‌کردنی",1,"لیتر",250000,0),
+        soda=I("نوشابه قوطی",24,"عدد",960000,0);
+  const D=(name,price,extra,sales,lines)=>S.dishes.push({id:uid(),name,price,extra,sales,lines:lines.map(([ingId,q])=>({id:uid(),ingId,q}))});
+  D("همبرگر کلاسیک",480000,15000,600,[[meat,150],[bun,1],[chz,20],[tom,30],[let_,20],[sauce,30]]);
+  D("ساندویچ مرغ",290000,12000,300,[[chk,150],[bag,1],[let_,20],[tom,30],[sauce,30]]);
+  D("سیب‌زمینی سرخ‌کرده",150000,8000,700,[[pot,250],[oil,40]]);
+  D("نوشابه",65000,0,200,[[soda,1]]);
+  save();
+}
+
+/* ===== محاسبات ===== */
+function ingUnitCost(ing){
+  if(!ing) return null;
+  const q=num(ing.q), p=num(ing.p), u=UNITS[ing.u]||UNITS["گرم"];
+  if(!q||!p) return null;
+  return p/(q*u.m*(1-(ing.w||0)));
+}
+function lineCost(l){ const uc=ingUnitCost(S.ings[l.ingId]); const q=num(l.q); return (uc==null||q==null)?null:uc*q; }
+function dishCost(d){
+  let sum=0, missing=0;
+  d.lines.forEach(l=>{const c=lineCost(l); if(c==null) missing++; else sum+=c;});
+  sum += num(d.extra)||0;
+  return {cost: (d.lines.length||num(d.extra)) ? sum : null, missing};
+}
+function usage(ingId){ let n=0; S.dishes.forEach(d=>d.lines.forEach(l=>{ if(l.ingId===ingId) n++; })); return n; }
+function status(d){
+  const {cost}=dishCost(d), price=num(d.price);
+  if(cost==null||!price) return {cls:"",fc:null,cost,price};
+  const fc=cost/price, t=S.target;
+  return {cls: fc<=t?"good":(fc<=t+0.08?"warn":"bad"), fc, cost, price};
+}
+
+/* ===== ناوبری ===== */
+let view = S.seen ? "dishes" : "intro", editId = null;
+function go(v, id){ view=v; editId=id??null; render(); window.scrollTo({top:0}); }
+document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>go(b.dataset.go));
+$("#demoBtn").onclick=async()=>{
+  if(S.dishes.length && !(await askConfirm("با نمونه، غذاهایی که وارد کردی پاک می‌شن. ادامه بدم؟"))) return;
+  demo(); go("report"); toast("نمونه بارگذاری شد");
+};
+
+function render(){
+  const stepMap={dishes:0,edit:0,sales:1,report:2};
+  document.querySelectorAll(".step").forEach((b,i)=>b.setAttribute("aria-current", stepMap[view]===i?"step":"false"));
+  $("#steps").style.display = view==="intro" ? "none" : "";
+  if (tg) { (view==="intro"||view==="dishes") ? tg.BackButton.hide() : tg.BackButton.show(); }
+  ({intro:vIntro, dishes:vDishes, edit:vEdit, sales:vSales, report:vReport})[view]();
+}
+
+/* ===== صفحه‌ها ===== */
+function vIntro(){
+  const who = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user.first_name : "";
+  $("#app").innerHTML = `
+    ${who?`<p class="lead" style="margin:0">سلام ${esc(who)}!</p>`:""}
+    <h1>هر غذای منوت واقعاً چقدر برات سود می‌ذاره؟</h1>
+    <p class="lead">خیلی از رستوران‌ها پرفروش‌ترین غذاشون رو تقریباً بی‌سود می‌فروشن و خبر ندارن. تو ۱۰ دقیقه حساب منوت رو دربیار.</p>
+    <div class="intro-ticket">
+      <b>فقط سه قدم:</b>
+      <ol>
+        <li>اسم غذاهات و موادی که توشون می‌ریزی رو بنویس.</li>
+        <li>بگو ماه پیش تقریباً از هر کدوم چند تا فروختی.</li>
+        <li>کارنامه‌ی منوت رو ببین: کدوم غذا سود می‌ده، کدوم نه، و چی کارش کنی.</li>
+      </ol>
+      <p class="hint">لازم نیست حسابداری بلد باشی. هر جا گیر کردی، دکمه‌ی «سؤال داری؟» پایین صفحه هست.</p>
+    </div>
+    <div class="row-btns">
+      <button class="btn btn-main" id="start" type="button">شروع کن</button>
+      <button class="btn btn-ghost" id="seeDemo" type="button">اول یه نمونه‌ی آماده ببینم</button>
+    </div>`;
+  $("#start").onclick=()=>{S.seen=true; save(); go("dishes");};
+  $("#seeDemo").onclick=()=>{demo(); go("report");};
+}
+
+function vDishes(){
+  const list = S.dishes.map(d=>{
+    const st=status(d), {missing}=dishCost(d);
+    let meta = st.cost!=null ? `هر پرس ${fa(st.cost)} تومان خرج داره` : "هنوز موادش وارد نشده";
+    if(missing) meta += " · بعضی قیمت‌ها کامل نیست";
+    return `<button class="dish" type="button" data-id="${d.id}">
+      <span class="dot ${st.cls}" aria-hidden="true"></span>
+      <span class="nm">${esc(d.name)||"غذای بی‌نام"}<span class="meta">${meta}</span></span>
+      <span class="go" aria-hidden="true">‹</span></button>`;
+  }).join("");
+  $("#app").innerHTML = `
+    <h2>قدم ۱: غذاهات رو اضافه کن</h2>
+    <p class="lead">برای هر غذا، موادی که تو یه پرس می‌ریزی رو بنویس. لازم نیست کل منو رو یه‌جا وارد کنی؛ با ۳ یا ۴ غذای اصلی شروع کن.</p>
+    ${list || `<div class="empty">هنوز غذایی اضافه نکردی.<br>با پرفروش‌ترین غذات شروع کن.</div>`}
+    <div class="row-btns">
+      <button class="btn btn-soft" id="addDish" type="button">+ یه غذا اضافه کن</button>
+      ${S.dishes.length ? `<button class="btn btn-main" type="button" id="next1">برو قدم بعد: فروش ماه</button>` : ""}
+    </div>`;
+  document.querySelectorAll(".dish").forEach(b=>b.onclick=()=>go("edit",b.dataset.id));
+  $("#addDish").onclick=()=>{ const d={id:uid(),name:"",price:"",extra:"",sales:"",lines:[]}; S.dishes.push(d); addLine(d); save(); go("edit",d.id); };
+  const n=$("#next1"); if(n) n.onclick=()=>go("sales");
+}
+
+function addLine(d){ const id=uid(); S.ings[id]={name:"",q:"",u:"کیلوگرم",p:"",w:0}; d.lines.push({id:uid(),ingId:id,q:""}); }
+
+function vEdit(){
+  const d = S.dishes.find(x=>x.id===editId); if(!d) return go("dishes");
+  const lines = d.lines.map((l,i)=>{
+    const ing=S.ings[l.ingId]||{}, u=UNITS[ing.u]||UNITS["کیلوگرم"], shared=usage(l.ingId);
+    return `<div class="ing" data-line="${l.id}">
+      <div class="ing-head"><strong>ماده‌ی ${faDigits(i+1)}</strong><button class="x" type="button" data-del="${l.id}">حذف</button></div>
+      ${shared>1?`<div class="shared">این ماده تو ${faDigits(shared)} غذا استفاده شده؛ اگه قیمتش رو عوض کنی، همه‌جا به‌روز می‌شه.</div>`:""}
+      <div class="field"><label>اسم ماده</label>
+        <input list="ingNames" data-f="name" value="${esc(ing.name)}" placeholder="مثلاً: گوشت چرخ‌کرده" autocomplete="off"></div>
+      <div class="field"><label>معمولاً چقدر ازش می‌خری؟</label>
+        <div class="pair"><input inputmode="decimal" data-f="q" value="${esc(ing.q)}" placeholder="مثلاً ۱">
+        <select data-f="u">${Object.keys(UNITS).map(k=>`<option ${k===ing.u?"selected":""}>${k}</option>`).join("")}</select></div></div>
+      <div class="field"><label>همین مقدار رو چند می‌خری؟ (تومان)</label>
+        <input inputmode="numeric" data-f="p" value="${esc(ing.p)}" placeholder="مثلاً ۱۱۰۰۰۰۰"><div class="money" data-money></div></div>
+      <div class="field"><label>چقدرش موقع پاک کردن دور ریخته می‌شه؟</label>
+        <select data-f="w">${WASTE.map(([v,t])=>`<option value="${v}" ${v==(ing.w||0)?"selected":""}>${t}</option>`).join("")}</select>
+        <p class="hint">مثلاً از یه کیلو کاهو، برگ‌های خراب و ته‌اش دور ریخته می‌شه.</p></div>
+      <div class="field"><label>تو یه پرس از این غذا چقدر ازش می‌ریزی؟ (<span data-base>${u.base}</span>)</label>
+        <input inputmode="decimal" data-f="lq" value="${esc(l.q)}" placeholder="مثلاً ۱۵۰"></div>
+      <div class="ing-cost">این ماده تو هر پرس: <b data-lc>—</b></div>
+    </div>`;
+  }).join("");
+  $("#app").innerHTML = `
+    <button class="back" type="button" id="back">‹ برگشت به لیست غذاها</button>
+    <div class="card">
+      <div class="field"><label for="dn">اسم غذا</label><input id="dn" value="${esc(d.name)}" placeholder="مثلاً: همبرگر مخصوص"></div>
+      <div class="field"><label for="dp">قیمت فروشش تو منو (تومان)</label><input id="dp" inputmode="numeric" value="${esc(d.price)}" placeholder="مثلاً ۴۸۰۰۰۰"><div class="money" id="dpm"></div></div>
+      <div class="field"><label for="de">هزینه‌ی جعبه، کیسه، دستمال و... برای هر پرس (تومان)</label><input id="de" inputmode="numeric" value="${esc(d.extra)}" placeholder="اگه نداره خالی بذار"><div class="money" id="dem"></div></div>
+    </div>
+    <h2>چه موادی توش می‌ریزی؟</h2>
+    <p class="hint" style="margin-bottom:12px">هر ماده رو جدا بنویس. اگه قبلاً تو یه غذای دیگه واردش کردی، اسمش رو که بنویسی قیمتش خودش میاد.</p>
+    ${lines}
+    <datalist id="ingNames">${[...new Set(Object.values(S.ings).map(i=>i.name).filter(Boolean))].map(n=>`<option value="${esc(n)}">`).join("")}</datalist>
+    <button class="btn btn-soft" type="button" id="addLine">+ یه ماده‌ی دیگه</button>
+    <button class="btn btn-danger no-print" type="button" id="delDish" style="margin-top:16px">حذف این غذا</button>
+    <div class="total-bar"><div><small>هر پرس برات خرج داره</small><b id="tot">—</b></div>
+      <button class="btn btn-main" type="button" id="done">ذخیره</button></div>`;
+
+  const upd = ()=>{
+    const {cost}=dishCost(d); $("#tot").textContent = cost!=null ? fa(cost)+" تومان" : "—";
+    $("#dpm").textContent = num(d.price)?fa(num(d.price))+" تومان":""; $("#dem").textContent = num(d.extra)?fa(num(d.extra))+" تومان":"";
+    document.querySelectorAll("[data-line]").forEach(box=>{
+      const l=d.lines.find(x=>x.id===box.dataset.line), ing=S.ings[l.ingId];
+      const c=lineCost(l); box.querySelector("[data-lc]").textContent = c!=null? fa(c)+" تومان" : "هنوز کامل نیست";
+      box.querySelector("[data-money]").textContent = num(ing.p)? fa(num(ing.p))+" تومان":"";
+      box.querySelector("[data-base]").textContent = (UNITS[ing.u]||UNITS["گرم"]).base;
+    });
+    save();
+  };
+  $("#dn").oninput=e=>{d.name=e.target.value; save();};
+  $("#dp").oninput=e=>{d.price=e.target.value; upd();};
+  $("#de").oninput=e=>{d.extra=e.target.value; upd();};
+  document.querySelectorAll("[data-line]").forEach(box=>{
+    const l=d.lines.find(x=>x.id===box.dataset.line);
+    box.querySelectorAll("[data-f]").forEach(inp=>{
+      const f=inp.dataset.f;
+      if(f==="name"){
+        inp.onchange=()=>{
+          const name=inp.value.trim();
+          const found=Object.entries(S.ings).find(([id,i])=>id!==l.ingId && i.name===name && name);
+          if(found){ l.ingId=found[0]; }
+          else if(usage(l.ingId)>1){ const cur=S.ings[l.ingId]; const id=uid(); S.ings[id]={...cur,name}; l.ingId=id; }
+          else { S.ings[l.ingId].name=name; }
+          save(); vEdit(); if(found) toast("قیمت «"+name+"» از قبل آورده شد");
+        };
+      } else {
+        const ev = inp.tagName==="SELECT" ? "change" : "input";
+        inp.addEventListener(ev,()=>{
+          if(f==="lq") l.q=inp.value;
+          else if(f==="w") S.ings[l.ingId].w=parseFloat(inp.value);
+          else S.ings[l.ingId][f]=inp.value;
+          upd();
+        });
+      }
+    });
+    box.querySelector("[data-del]").onclick=()=>{ d.lines=d.lines.filter(x=>x!==l); save(); vEdit(); };
+  });
+  $("#addLine").onclick=()=>{ addLine(d); save(); vEdit(); const all=document.querySelectorAll("[data-line]"); all[all.length-1].scrollIntoView({block:"center"}); };
+  $("#delDish").onclick=async()=>{ if(await askConfirm("این غذا حذف بشه؟")){ S.dishes=S.dishes.filter(x=>x!==d); save(); go("dishes"); } };
+  $("#back").onclick=()=>go("dishes");
+  $("#done").onclick=()=>{ if(!d.name.trim()){ toast("اول اسم غذا رو بنویس"); $("#dn").focus(); return; } toast("ذخیره شد"); go("dishes"); };
+  upd();
+}
+
+function vSales(){
+  if(!S.dishes.length) return go("dishes");
+  $("#app").innerHTML = `
+    <h2>قدم ۲: ماه پیش چقدر فروختی؟</h2>
+    <p class="lead">تقریبی هم کافیه. اگه از صندوق یا اپ فروش گزارش داری، عدد یک ماهش رو بنویس. این عدد کمک می‌کنه بفهمیم کدوم غذا واقعاً ستاره‌ی منوته.</p>
+    ${S.dishes.map(d=>`<label class="sale-row"><span><b>${esc(d.name)||"غذای بی‌نام"}</b><span class="hint" style="display:block;margin:0">تعداد در یک ماه</span></span>
+      <input inputmode="numeric" data-id="${d.id}" value="${esc(d.sales)}" placeholder="مثلاً ۳۰۰"></label>`).join("")}
+    <p class="hint">اگه نمی‌دونی، خالی بذار. کارنامه بدون این عدد هم ساخته می‌شه، فقط بخش «ستاره‌های منو» رو نشون نمی‌ده.</p>
+    <div class="row-btns"><button class="btn btn-main" type="button" id="next2">کارنامه‌ی منوم رو نشون بده</button></div>`;
+  document.querySelectorAll(".sale-row input").forEach(i=>i.oninput=()=>{ S.dishes.find(d=>d.id===i.dataset.id).sales=i.value; save(); });
+  $("#next2").onclick=()=>go("report");
+}
+
+function vReport(){
+  const rows = S.dishes.map(d=>({d, ...status(d), sales:num(d.sales)})).filter(r=>r.fc!=null);
+  const t=S.target;
+  const settings = `
+    <div class="settings">
+      <b>می‌خوای از هر ۱۰۰ تومن فروش، حداکثر چقدرش خرج مواد و بسته‌بندی بشه؟</b>
+      <div class="chips">${[0.3,0.35,0.4].map(v=>`<button class="chip" type="button" aria-pressed="${Math.abs(v-t)<0.001}" data-t="${v}">${faDigits(Math.round(v*100))} تومن</button>`).join("")}</div>
+      <p class="hint">برای بیشتر فست‌فودی‌ها ۳۰ تا ۳۵ تومن هدف معقولیه. اگه مطمئن نیستی، روی ۳۵ بذار.</p>
+      <label class="toggle"><input type="checkbox" id="onl" ${S.online?"checked":""}> تو اپ‌های سفارش آنلاین هم می‌فروشم</label>
+      ${S.online?`<div class="field" style="margin:8px 0 0"><label for="com">کمیسیون اپ چند درصده؟</label><input id="com" inputmode="numeric" value="${faDigits(Math.round(S.commission*100))}"></div>`:""}
+    </div>`;
+  if(!rows.length){
+    $("#app").innerHTML = `<h2>قدم ۳: کارنامه‌ی منو</h2>${settings}
+      <div class="empty">هنوز غذایی با قیمت فروش و مواد کامل نداری.<br>اول تو قدم ۱ دست‌کم یه غذا رو کامل کن.</div>
+      <div class="row-btns"><button class="btn btn-main" type="button" onclick="go('dishes')">برو به قدم ۱</button></div>`;
+    bindSettings(); return;
+  }
+  // menu engineering
+  const sold = rows.filter(r=>r.sales>0);
+  let me=null;
+  if(sold.length>=2){
+    const total=sold.reduce((a,r)=>a+r.sales,0);
+    const avgProfit=sold.reduce((a,r)=>a+(r.price-r.cost)*r.sales,0)/total;
+    me={total, avgProfit, popTh:0.7/sold.length};
+  }
+  const CAT = {
+    star:["ستاره‌ی منو","هم پرفروشه هم پرسود. برگ برنده‌ته؛ بهترین جای منو رو بهش بده و کیفیتش رو ثابت نگه دار."],
+    horse:["پرفروش ولی کم‌سود","مشتری دوستش داره ولی سود کمی برات می‌ذاره. کمی قیمت رو بالا ببر، یا اندازه و هزینه‌ی موادش رو بازبینی کن."],
+    puzzle:["پرسود ولی کم‌فروش","سود خوبی می‌ذاره ولی کم دیده می‌شه. بهتر معرفیش کن: جای بهتر تو منو، عکس، یا پیشنهاد به مشتری."],
+    dog:["کم‌فروش و کم‌سود","نه زیاد فروش می‌ره نه سود خوبی داره. یا عوضش کن یا از منو برش دار تا جا برای غذاهای بهتر باز بشه."]
+  };
+  const tg = CONTACT.telegram;
+  let monthProfit=0, anySales=false;
+  const body = rows.map(r=>{
+    const profit=r.price-r.cost, onlineProfit=r.price*(1-S.commission)-r.cost;
+    const sugg=Math.ceil(r.cost/t/1000)*1000;
+    if(r.sales>0){ monthProfit+=profit*r.sales; anySales=true; }
+    let v;
+    if(r.cls==="good") v=`<div class="verdict good"><b>قیمت‌گذاری سالمه</b>خرج مواد این غذا تو محدوده‌ی هدفته.</div>`;
+    else if(r.cls==="warn") v=`<div class="verdict warn"><b>قابل‌قبول، ولی حواست باشه</b>کمی بالاتر از هدفته. با قیمت ${fa(sugg)} تومان به هدفت می‌رسی.</div>`;
+    else v=`<div class="verdict bad"><b>این غذا کم‌سوده</b>خرج مواد خیلی بالاتر از هدفته. برای رسیدن به هدف، قیمتش باید حدود ${fa(sugg)} تومان باشه، یا هزینه‌ی موادش پایین بیاد.</div>`;
+    let cat="", key=null;
+    if(me && r.sales>0){
+      const pop=r.sales/me.total>=me.popTh, prof=profit>=me.avgProfit;
+      key = pop?(prof?"star":"horse"):(prof?"puzzle":"dog");
+      cat=`<div class="cat"><b>${CAT[key][0]}:</b> ${CAT[key][1]}</div>`;
+    }
+    const needHelp = r.cls==="bad" || key==="dog" || key==="horse";
+    const ask = needHelp ? `<div class="ask"><span>نمی‌دونی این غذا رو چطور درست کنی؟ بهم پیام بده.</span><a href="${tg}" target="_blank" rel="noopener">پیام به نیما</a></div>` : "";
+    const barColor = r.cls==="good"?"var(--good)":r.cls==="warn"?"var(--saffron)":"var(--bad)";
+    return `<div class="r-dish">
+      <div class="r-name">${esc(r.d.name)||"غذای بی‌نام"}</div>
+      <div class="r-line"><span class="lbl">قیمت فروش</span><span class="dots"></span><span class="val">${fa(r.price)}</span></div>
+      <div class="r-line"><span class="lbl">خرج هر پرس</span><span class="dots"></span><span class="val">${fa(r.cost)}</span></div>
+      <div class="r-line"><span class="lbl">سود هر پرس</span><span class="dots"></span><span class="val">${fa(profit)}</span></div>
+      ${S.online?`<div class="r-line"><span class="lbl">سود هر پرس در فروش آنلاین</span><span class="dots"></span><span class="val">${fa(onlineProfit)}</span></div>`:""}
+      ${r.sales>0?`<div class="r-line"><span class="lbl">سود یک ماه (${fa(r.sales)} پرس)</span><span class="dots"></span><span class="val">${fa(profit*r.sales)}</span></div>`:""}
+      <div class="bar" aria-hidden="true"><i style="width:${Math.min(100,r.fc*100)}%;background:${barColor}"></i></div>
+      <div class="hundred">از هر ۱۰۰ تومن فروش، <b>${faDigits(Math.round(r.fc*100))} تومن</b> خرج مواد و بسته‌بندیه.</div>
+      ${v}${cat}${ask}
+    </div>`;
+  }).join("");
+  const partial = S.dishes.length - rows.length;
+  $("#app").innerHTML = `
+    <h2>قدم ۳: کارنامه‌ی منوی تو</h2>
+    ${settings}
+    ${anySales?`<div class="summary"><div><small>سود ناخالص یک ماه از این غذاها</small><b>${fa(monthProfit)}</b></div><div><small>تعداد پرس فروخته‌شده</small><b>${fa(rows.reduce((a,r)=>a+(r.sales||0),0))}</b></div></div>`:""}
+    ${!me?`<div class="note">برای اینکه بفهمی کدوم غذا ستاره‌ی منوته، تو قدم ۲ تعداد فروش دست‌کم دو غذا رو وارد کن.</div>`:""}
+    ${partial>0?`<div class="note">${faDigits(partial)} غذا به‌خاطر نداشتن قیمت فروش یا مواد، تو کارنامه نیومده.</div>`:""}
+    <div class="receipt" id="receipt">
+      <div class="r-head"><div class="t">کارنامه‌ی منو</div><div class="s">نیما داینز · مبالغ به تومان</div></div>
+      ${body}
+    </div>
+    <div class="note">یادت باشه: «سود هر پرس» هنوز اجاره، حقوق و قبض‌ها رو کم نکرده. این عدد نشون می‌ده هر غذا چقدر برای پوشش این هزینه‌ها و سود نهایی کمک می‌کنه.</div>
+    <div class="row-btns no-print">
+      <button class="btn btn-ghost print-btn" type="button" onclick="window.print()">ذخیره یا چاپ کارنامه</button>
+      <button class="btn btn-soft" type="button" onclick="go('dishes')">ویرایش غذاها</button>
+    </div>`;
+  bindSettings();
+}
+function bindSettings(){
+  document.querySelectorAll("[data-t]").forEach(b=>b.onclick=()=>{S.target=parseFloat(b.dataset.t); save(); vReport();});
+  const o=$("#onl"); if(o) o.onchange=()=>{S.online=o.checked; save(); vReport();};
+  const c=$("#com"); if(c) c.onchange=()=>{const v=num(c.value); if(v!=null&&v>=0&&v<100){S.commission=v/100; save(); vReport();}};
+}
+
+/* ===== تماس ===== */
+function renderContacts(){
+  const p=CONTACT.phone, intl="+98"+p.replace(/^0/,"");
+  $("#contacts").innerHTML = `
+    <a class="contact tg" href="${CONTACT.telegram}" target="_blank" rel="noopener"><span class="ic">✈</span><div><b>پیام در تلگرام</b><span>${CONTACT.telegram.replace("https://","")}</span></div></a>
+    <a class="contact" href="tel:${intl}"><span class="ic">☎</span><div><b>تماس تلفنی</b><span>${faDigits(p)}</span></div></a>
+    <a class="contact" href="${CONTACT.instagram}" target="_blank" rel="noopener"><span class="ic">◎</span><div><b>دایرکت اینستاگرام</b><span>${CONTACT.instagram.replace("https://","")}</span></div></a>
+    <a class="contact" href="mailto:${CONTACT.email}"><span class="ic">@</span><div><b>ایمیل</b><span>${CONTACT.email}</span></div></a>`;
+}
+function openSheet(){ $("#sheetBg").style.display="block"; requestAnimationFrame(()=>$("#sheet").classList.add("open")); }
+function closeSheet(){ $("#sheet").classList.remove("open"); setTimeout(()=>$("#sheetBg").style.display="none",250); }
+document.querySelectorAll("[data-help]").forEach(b=>b.onclick=openSheet);
+$("#sheetBg").onclick=closeSheet; $("#closeSheet").onclick=closeSheet;
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeSheet(); });
+
+let tt; function toast(m){ const t=$("#toast"); t.textContent=m; t.classList.add("show"); clearTimeout(tt); tt=setTimeout(()=>t.classList.remove("show"),1800); }
+
+renderContacts(); render();
+</script>
+</body>
+</html>
