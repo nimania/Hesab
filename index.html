@@ -157,8 +157,15 @@ h2{font-size:22px;font-weight:900;margin:4px 0 6px;line-height:1.5}
 .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:8px 18px;border-radius:999px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:30}
 .toast.show{opacity:1}
 
+/* gate */
+.gate-load{text-align:center;padding:70px 0;color:var(--muted)}
+.spin{display:inline-block;width:36px;height:36px;border:4px solid var(--line);border-top-color:var(--saffron);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.row-btns .linkbtn{justify-self:center}
+.lock-note{background:var(--paper);border-radius:14px;padding:12px 14px;font-size:14px;color:var(--muted);margin:0 0 6px}
+
 .tg .print-btn{display:none}
-@media (prefers-reduced-motion:reduce){.sheet,.toast{transition:none}}
+@media (prefers-reduced-motion:reduce){.sheet,.toast{transition:none}.spin{animation-duration:2.4s}}
 @media print{
   body{background:#fff}
   .steps,.fab,.helpbox,.top .linkbtn,.settings,.no-print,.ask{display:none!important}
@@ -198,29 +205,78 @@ h2{font-size:22px;font-weight:900;margin:4px 0 6px;line-height:1.5}
 <div class="toast" id="toast" role="status"></div>
 
 <script>
-/* ===== اطلاعات تماس: فقط همین‌جا رو عوض کن ===== */
+/* ===== تنظیمات: فقط همین‌جا رو عوض کن ===== */
+const CONFIG = {
+  api: "https://hesab-bot.nimania.workers.dev",   // ← آدرس سرور Cloudflare (از صفحه‌ی setup کپی کن)
+  channel: "nimasdiner",                              // کانالی که عضویتش لازمه (بدون @)
+  bot: "nimasdiner_bot"                               // ربات پشتیبانی (بدون @)
+};
 const CONTACT = {
   phone: "09123107537",
-  telegram: "https://t.me/nimasdiner",
+  telegram: "https://t.me/" + CONFIG.bot,             // پیام خصوصی از طریق ربات به نیما می‌رسه
+  channel: "https://t.me/" + CONFIG.channel,
   instagram: "https://instagram.com/nimasdiner",
   email: "nimania@gmail.com"
 };
 
-/* ===== تلگرام: فقط وقتی صفحه داخل تلگرام باز شده فعال می‌شه ===== */
+/* ===== تلگرام + بررسی دسترسی (عضویت کانال و شماره موبایل) ===== */
 const IN_TG = /tgWebApp/.test(location.hash);
+const AUTH_KEY = "nimadines-hesab-auth";
 let tg = null;
+let gate = IN_TG ? "loading" : "outside";   // outside | loading | join | phone | error | ok
 if (IN_TG) {
   const sc = document.createElement("script");
   sc.src = "https://telegram.org/js/telegram-web-app.js";
   sc.onload = () => {
-    tg = window.Telegram && window.Telegram.WebApp; if (!tg) return;
+    tg = window.Telegram && window.Telegram.WebApp;
+    if (!tg || !tg.initData) { tg = null; gate = "outside"; render(); return; }
     tg.ready(); tg.expand();
     try { tg.setHeaderColor("#EEF0EC"); tg.setBackgroundColor("#EEF0EC"); } catch(e){}
     tg.BackButton.onClick(() => { if (view==="edit"||view==="sales") go("dishes"); else if (view==="report") go("sales"); });
     document.body.classList.add("tg");
-    render();
+    checkAccess();
   };
+  sc.onerror = () => { gate = "error"; render(); };
   document.head.appendChild(sc);
+}
+
+async function checkAccess(quiet){
+  if (!tg) { gate = "outside"; render(); return gate; }
+  if (!quiet) { gate = "loading"; render(); }
+  let d = null;
+  try {
+    const ctrl = new AbortController(), tm = setTimeout(()=>ctrl.abort(), 12000);
+    const r = await fetch(CONFIG.api.replace(/\/+$/,"") + "/api/check", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({initData: tg.initData}), signal: ctrl.signal
+    });
+    clearTimeout(tm);
+    d = await r.json();
+  } catch(e) {}
+  if (d && d.ok) {
+    gate = !d.member ? "join" : (!d.hasPhone ? "phone" : "ok");
+    if (gate==="ok") { try{ localStorage.setItem(AUTH_KEY, String(Date.now())); }catch(e){} }
+  } else {
+    // اگه سرور در دسترس نبود ولی این کاربر تو ۳ روز اخیر تأیید شده، کارش راه نیفته
+    let last = 0; try{ last = +localStorage.getItem(AUTH_KEY) || 0; }catch(e){}
+    gate = (Date.now() - last < 3*864e5) ? "ok" : "error";
+  }
+  render();
+  return gate;
+}
+
+function sharePhone(){
+  if (!tg) return;
+  if (tg.requestContact && tg.isVersionAtLeast && tg.isVersionAtLeast("6.9")) {
+    tg.requestContact(async ok=>{
+      if (!ok) { toast("برای استفاده از ابزار، ارسال شماره لازمه"); return; }
+      toast("ممنون! در حال ثبت…");
+      for (let i=0;i<8;i++){ await new Promise(r=>setTimeout(r,1500)); if ((await checkAccess(true))!=="phone") return; }
+      toast("هنوز ثبت نشد؛ «فرستادم، ادامه بده» رو بزن");
+    });
+  } else {
+    tg.openTelegramLink("https://t.me/" + CONFIG.bot + "?start=phone");
+  }
 }
 function askConfirm(m){
   return new Promise(r=>{
@@ -313,11 +369,56 @@ $("#demoBtn").onclick=async()=>{
 };
 
 function render(){
+  const locked = gate!=="ok";
+  $("#demoBtn").style.display = locked ? "none" : "";
+  if (locked) { $("#steps").style.display="none"; if (tg) tg.BackButton.hide(); return vGate(); }
   const stepMap={dishes:0,edit:0,sales:1,report:2};
   document.querySelectorAll(".step").forEach((b,i)=>b.setAttribute("aria-current", stepMap[view]===i?"step":"false"));
   $("#steps").style.display = view==="intro" ? "none" : "";
   if (tg) { (view==="intro"||view==="dishes") ? tg.BackButton.hide() : tg.BackButton.show(); }
   ({intro:vIntro, dishes:vDishes, edit:vEdit, sales:vSales, report:vReport})[view]();
+}
+
+/* ===== صفحه‌های ورود (قفل) ===== */
+function vGate(){
+  const who = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user.first_name : "";
+  const hi = who ? `<p class="lead" style="margin:0">سلام ${esc(who)}!</p>` : "";
+  const V = {
+    loading: `<div class="gate-load"><span class="spin" aria-hidden="true"></span><p>یه لحظه صبر کن…</p></div>`,
+    outside: `
+      <h1>حساب غذا داخل تلگرام باز می‌شه</h1>
+      <p class="lead">این ابزار رایگان، مخصوص اعضای کانال نیما داینز در تلگرامه. از ربات بازش کن.</p>
+      <div class="row-btns"><a class="btn btn-main" href="${CONTACT.telegram}?start=app">باز کردن در تلگرام</a></div>`,
+    join: `${hi}
+      <h1>اول عضو کانال نیما داینز شو</h1>
+      <p class="lead">حساب غذا رایگانه و مخصوص اعضای کانال <b><bdi dir="ltr">@${esc(CONFIG.channel)}</bdi></b>. تو کانال هر روز نکته‌های منو، قیمت‌گذاری و مدیریت رستوران رو می‌ذارم.</p>
+      <div class="row-btns">
+        <a class="btn btn-main" href="${CONTACT.channel}">عضویت در کانال</a>
+        <button class="btn btn-ghost" type="button" id="recheck">عضو شدم، ادامه بده</button>
+      </div>`,
+    phone: `${hi}
+      <h1>یه قدم مونده: شماره‌ی موبایلت</h1>
+      <p class="lead">شماره‌ات رو با دکمه‌ی خود تلگرام بفرست تا اگه سؤالی داشتی یا مشاوره خواستی، بتونم باهات در تماس باشم.</p>
+      <p class="lock-note">🔒 شماره‌ات فقط پیش نیما می‌مونه و به هیچ‌کس داده نمی‌شه.</p>
+      <div class="row-btns">
+        <button class="btn btn-main" type="button" id="sharePhone">📱 ارسال شماره با تلگرام</button>
+        <a class="btn btn-soft" href="${CONTACT.telegram}?start=phone">یا شماره رو تو چت ربات بفرست</a>
+        <button class="linkbtn" type="button" id="recheck">فرستادم، ادامه بده</button>
+      </div>`,
+    error: `
+      <h1>الان نتونستم بررسی کنم</h1>
+      <p class="lead">احتمالاً اینترنت یا فیلترشکن قطع و وصل شده. چند ثانیه بعد دوباره امتحان کن.</p>
+      <div class="row-btns"><button class="btn btn-main" type="button" id="recheck">دوباره امتحان کن</button></div>`
+  };
+  $("#app").innerHTML = V[gate] || V.loading;
+  const rc=$("#recheck");
+  if (rc) rc.onclick=async()=>{
+    if (!tg) return location.reload();
+    const before=gate, g=await checkAccess();
+    if (g===before && g==="join") toast("هنوز عضویتت ثبت نشده؛ چند ثانیه بعد دوباره بزن");
+    if (g===before && g==="phone") toast("هنوز شماره‌ات نرسیده");
+  };
+  const sp=$("#sharePhone"); if (sp) sp.onclick=sharePhone;
 }
 
 /* ===== صفحه‌ها ===== */
@@ -497,7 +598,7 @@ function vReport(){
     puzzle:["پرسود ولی کم‌فروش","سود خوبی می‌ذاره ولی کم دیده می‌شه. بهتر معرفیش کن: جای بهتر تو منو، عکس، یا پیشنهاد به مشتری."],
     dog:["کم‌فروش و کم‌سود","نه زیاد فروش می‌ره نه سود خوبی داره. یا عوضش کن یا از منو برش دار تا جا برای غذاهای بهتر باز بشه."]
   };
-  const tg = CONTACT.telegram;
+  const tgLink = CONTACT.telegram;
   let monthProfit=0, anySales=false;
   const body = rows.map(r=>{
     const profit=r.price-r.cost, onlineProfit=r.price*(1-S.commission)-r.cost;
@@ -514,7 +615,7 @@ function vReport(){
       cat=`<div class="cat"><b>${CAT[key][0]}:</b> ${CAT[key][1]}</div>`;
     }
     const needHelp = r.cls==="bad" || key==="dog" || key==="horse";
-    const ask = needHelp ? `<div class="ask"><span>نمی‌دونی این غذا رو چطور درست کنی؟ بهم پیام بده.</span><a href="${tg}" target="_blank" rel="noopener">پیام به نیما</a></div>` : "";
+    const ask = needHelp ? `<div class="ask"><span>نمی‌دونی این غذا رو چطور درست کنی؟ بهم پیام بده.</span><a href="${tgLink}" target="_blank" rel="noopener">پیام به نیما</a></div>` : "";
     const barColor = r.cls==="good"?"var(--good)":r.cls==="warn"?"var(--saffron)":"var(--bad)";
     return `<div class="r-dish">
       <div class="r-name">${esc(r.d.name)||"غذای بی‌نام"}</div>
@@ -556,7 +657,8 @@ function bindSettings(){
 function renderContacts(){
   const p=CONTACT.phone, intl="+98"+p.replace(/^0/,"");
   $("#contacts").innerHTML = `
-    <a class="contact tg" href="${CONTACT.telegram}" target="_blank" rel="noopener"><span class="ic">✈</span><div><b>پیام در تلگرام</b><span>${CONTACT.telegram.replace("https://","")}</span></div></a>
+    <a class="contact tg" href="${CONTACT.telegram}" target="_blank" rel="noopener"><span class="ic">✈</span><div><b>پیام خصوصی به نیما در تلگرام</b><span>@${CONFIG.bot}</span></div></a>
+    <a class="contact tg" href="${CONTACT.channel}" target="_blank" rel="noopener"><span class="ic">📢</span><div><b>کانال نیما داینز</b><span>@${CONFIG.channel}</span></div></a>
     <a class="contact" href="tel:${intl}"><span class="ic">☎</span><div><b>تماس تلفنی</b><span>${faDigits(p)}</span></div></a>
     <a class="contact" href="${CONTACT.instagram}" target="_blank" rel="noopener"><span class="ic">◎</span><div><b>دایرکت اینستاگرام</b><span>${CONTACT.instagram.replace("https://","")}</span></div></a>
     <a class="contact" href="mailto:${CONTACT.email}"><span class="ic">@</span><div><b>ایمیل</b><span>${CONTACT.email}</span></div></a>`;
